@@ -550,5 +550,6 @@ describe("cron tool", () => {
     expect(params?.id).toBe("job-2");
     expect(params?.patch?.sessionTarget).toBe("main");
     expect(params?.patch?.failureAlert).toEqual({ after: 3, cooldownMs: 60_000 });
+
   });
 });
