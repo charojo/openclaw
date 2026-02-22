@@ -251,7 +251,8 @@
       "koffi",
       "node-llama-cpp",
       "protobufjs",
-      "sharp"
+      "sharp",
+      "@discordjs/opus"
     ]
   }
 }
