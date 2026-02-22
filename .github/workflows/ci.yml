@@ -167,6 +167,8 @@ jobs:
       - name: Setup Node environment
         uses: ./.github/actions/setup-node-env
         with:
+          pnpm-version: "10.23.0"
+          frozen-lockfile: "true"
           install-bun: "false"
           install-deps: "false"
           use-sticky-disk: "false"
@@ -296,6 +298,8 @@ jobs:
       - name: Setup Node environment
         uses: ./.github/actions/setup-node-env
         with:
+          pnpm-version: "10.23.0"
+          frozen-lockfile: "true"
           install-bun: "false"
           use-sticky-disk: "false"
 
@@ -353,8 +357,12 @@ jobs:
         with:
           node-version: "${{ matrix.node_version || '24.x' }}"
           cache-key-suffix: "${{ matrix.cache_key_suffix || 'node24' }}"
-          install-bun: "false"
+          install-bun: "${{ matrix.runtime == 'bun' }}"
           use-sticky-disk: "false"
+
+      - name: Configure vitest JSON reports
+        if: (github.event_name != 'push' || matrix.runtime != 'bun') && matrix.task == 'test' && matrix.runtime == 'node'
+        run: echo "OPENCLAW_VITEST_REPORT_DIR=$RUNNER_TEMP/vitest-reports" >> "$GITHUB_ENV"
 
       - name: Configure Node test resources
         if: (github.event_name != 'pull_request' || matrix.task != 'compat-node22') && matrix.runtime == 'node' && (matrix.task == 'test' || matrix.task == 'channels' || matrix.task == 'compat-node22')
@@ -461,6 +469,8 @@ jobs:
       - name: Setup Node environment
         uses: ./.github/actions/setup-node-env
         with:
+          pnpm-version: "10.23.0"
+          frozen-lockfile: "true"
           install-bun: "false"
           use-sticky-disk: "false"
 
@@ -488,6 +498,8 @@ jobs:
       - name: Setup Node environment
         uses: ./.github/actions/setup-node-env
         with:
+          pnpm-version: "10.23.0"
+          frozen-lockfile: "true"
           install-bun: "false"
           use-sticky-disk: "false"
 
@@ -685,6 +697,8 @@ jobs:
       - name: Setup Node environment
         uses: ./.github/actions/setup-node-env
         with:
+          pnpm-version: "10.23.0"
+          frozen-lockfile: "true"
           install-bun: "false"
           use-sticky-disk: "false"
 
@@ -860,6 +874,8 @@ jobs:
       - name: Setup Node environment
         uses: ./.github/actions/setup-node-env
         with:
+          pnpm-version: "10.23.0"
+          frozen-lockfile: "true"
           install-bun: "false"
 
       - name: Download dist artifact

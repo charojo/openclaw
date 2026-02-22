@@ -88,7 +88,7 @@ export function resolveStateDir(
   return newDir;
 }
 
-function resolveUserPath(
+export function resolveUserPath(
   input: string,
   env: NodeJS.ProcessEnv = process.env,
   homedir: () => string = envHomedir(env),
