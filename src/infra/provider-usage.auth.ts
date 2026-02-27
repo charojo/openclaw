@@ -81,7 +81,11 @@ function resolveZaiApiKey(): string | undefined {
 function resolveMinimaxApiKey(): string | undefined {
   return resolveProviderApiKeyFromConfigAndStore({
     providerId: "minimax",
-    envDirect: [process.env.MINIMAX_CODE_PLAN_KEY, process.env.MINIMAX_API_KEY],
+    envDirect: [
+      process.env.MINIMAX_CODE_PLAN_KEY,
+      process.env.MINIMAX_API_KEY,
+      process.env.MINIMAX_CODE_KEY,
+    ],
   });
 }
 
@@ -189,6 +193,7 @@ function resolveOAuthProviders(agentDir?: string): UsageProviderId[] {
     "github-copilot",
     "google-gemini-cli",
     "openai-codex",
+    "minimax-portal",
   ] satisfies UsageProviderId[];
   const isOAuthLikeCredential = (id: string) => {
     const cred = store.profiles[id];
