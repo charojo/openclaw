@@ -231,13 +231,15 @@ export function attachGatewayWsMessageHandler(params: {
   const remoteIsTrustedProxy = isTrustedProxyAddress(remoteAddr, trustedProxies);
   const hasUntrustedProxyHeaders = hasProxyHeaders && !remoteIsTrustedProxy;
   const hostIsLocalish = isLocalishHost(requestHost);
-  const isLocalClient = isLocalDirectRequest(upgradeReq, trustedProxies, allowRealIpFallback);
+  const isLocalClient =
+    isLocalDirectRequest(upgradeReq, trustedProxies, allowRealIpFallback) ||
+    isLoopbackAddress(remoteAddr);
   const reportedClientIp =
-    isLocalClient || hasUntrustedProxyHeaders
-      ? undefined
-      : clientIp && !isLoopbackAddress(clientIp)
-        ? clientIp
-        : undefined;
+    clientIp && !isLoopbackAddress(clientIp)
+      ? clientIp
+      : isLoopbackAddress(remoteAddr)
+        ? remoteAddr
+        : "unknown-ip";
 
   if (hasUntrustedProxyHeaders) {
     logWsControl.warn(
