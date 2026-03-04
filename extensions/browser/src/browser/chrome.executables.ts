@@ -558,6 +558,29 @@ export function findChromeExecutableLinux(): BrowserExecutable | null {
     { kind: "chromium", path: "/snap/bin/chromium" },
   ];
 
+  // Also check Playwright's cache for fallback Chromium on Linux
+  const playwrightDir = path.join(os.homedir(), ".cache", "ms-playwright");
+  if (exists(playwrightDir)) {
+    try {
+      const dirs = fs.readdirSync(playwrightDir);
+      for (const dir of dirs) {
+        if (dir.startsWith("chromium-")) {
+          // Playwright structure: ~/.cache/ms-playwright/chromium-XXXX/chrome-linux/chrome
+          // (sometimes chrome-linux64/chrome depending on version/arch)
+          const linuxSubdirs = ["chrome-linux", "chrome-linux64"];
+          for (const sub of linuxSubdirs) {
+            const p = path.join(playwrightDir, dir, sub, "chrome");
+            if (exists(p)) {
+              candidates.push({ kind: "chromium", path: p });
+            }
+          }
+        }
+      }
+    } catch {
+      // ignore
+    }
+  }
+
   return findFirstExecutable(candidates);
 }
 

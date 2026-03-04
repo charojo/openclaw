@@ -25,6 +25,9 @@ export function shouldIgnoreWarning(warning: ProcessWarning): boolean {
   ) {
     return true;
   }
+  if (warning.name === "MaxListenersExceededWarning" && warning.message?.includes("exit")) {
+    return true;
+  }
   return false;
 }
 
