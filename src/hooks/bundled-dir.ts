@@ -8,7 +8,23 @@ export function resolveBundledHooksDir(): string | undefined {
     return override;
   }
 
-  // bun --compile: ship a sibling `hooks/bundled/` next to the executable.
+  // 1. Resolve relative to this module (compiled hooks in dist/)
+  try {
+    const moduleDir = path.dirname(fileURLToPath(import.meta.url));
+    // If we're in dist/, look for bundled/ relative to us
+    const distBundled = path.join(moduleDir, "bundled");
+    if (fs.existsSync(distBundled)) {
+      // Ensure it contains compiled .js handlers, not just HOOK.md
+      const entries = fs.readdirSync(distBundled, { withFileTypes: true });
+      if (entries.some((e) => e.isDirectory())) {
+        return distBundled;
+      }
+    }
+  } catch {
+    // ignore
+  }
+
+  // 2. Resolve relative to process.execPath (compiled standalone binary)
   try {
     const execDir = path.dirname(process.execPath);
     const sibling = path.join(execDir, "hooks", "bundled");
@@ -19,26 +35,20 @@ export function resolveBundledHooksDir(): string | undefined {
     // ignore
   }
 
-  // npm: resolve `<packageRoot>/dist/hooks/bundled` relative to this module (compiled hooks).
-  // This path works when installed via npm: node_modules/openclaw/dist/hooks/bundled-dir.js
+  // 3. Dev: resolve `<packageRoot>/src/hooks/bundled` if we're in dev mode or dist doesn't exist
   try {
     const moduleDir = path.dirname(fileURLToPath(import.meta.url));
-    const distBundled = path.join(moduleDir, "bundled");
-    if (fs.existsSync(distBundled)) {
-      return distBundled;
-    }
-  } catch {
-    // ignore
-  }
-
-  // dev: resolve `<packageRoot>/src/hooks/bundled` relative to dist/hooks/bundled-dir.js
-  // This path works in dev: dist/hooks/bundled-dir.js -> ../../src/hooks/bundled
-  try {
-    const moduleDir = path.dirname(fileURLToPath(import.meta.url));
+    // dist/hooks/bundled-dir.js -> ../../src/hooks/bundled
     const root = path.resolve(moduleDir, "..", "..");
     const srcBundled = path.join(root, "src", "hooks", "bundled");
     if (fs.existsSync(srcBundled)) {
-      return srcBundled;
+      // Only return src if we're actually in a dev env (e.g. running via tsx or explicitly requested)
+      const isDev = Boolean(
+        process.env.OPENCLAW_DEV || process.env.TSGO_DEV || process.env.NODE_SKIP_PLATFORM_CHECK,
+      );
+      if (isDev) {
+        return srcBundled;
+      }
     }
   } catch {
     // ignore

@@ -31,7 +31,7 @@ describe("readPostCompactionContext", () => {
 ## Session Startup
 
 Read these files:
-1. WORKFLOW_AUTO.md
+1. startup_procedures.md
 2. memory/today.md
 
 ## Other Section
@@ -42,7 +42,7 @@ Not relevant.
     const result = await readPostCompactionContext(tmpDir);
     expect(result).not.toBeNull();
     expect(result).toContain("Session Startup");
-    expect(result).toContain("WORKFLOW_AUTO.md");
+    expect(result).toContain("startup_procedures.md");
     expect(result).toContain("Post-compaction context refresh");
     expect(result).not.toContain("Other Section");
   });
@@ -102,14 +102,14 @@ Ignore this.
 
 ## session startup
 
-Read WORKFLOW_AUTO.md
+Read startup_procedures.md
 
 ## Other
 `;
     fs.writeFileSync(path.join(tmpDir, "AGENTS.md"), content);
     const result = await readPostCompactionContext(tmpDir);
     expect(result).not.toBeNull();
-    expect(result).toContain("WORKFLOW_AUTO.md");
+    expect(result).toContain("startup_procedures.md");
   });
 
   it("matches H3 headings", async () => {

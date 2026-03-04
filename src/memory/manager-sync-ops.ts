@@ -254,7 +254,15 @@ export abstract class MemoryManagerSyncOps {
     const dir = path.dirname(dbPath);
     ensureDir(dir);
     const { DatabaseSync } = requireNodeSqlite();
-    return new DatabaseSync(dbPath, { allowExtension: this.settings.store.vector.enabled });
+    const db = new DatabaseSync(dbPath, { allowExtension: this.settings.store.vector.enabled });
+    try {
+      db.exec("PRAGMA journal_mode = WAL");
+      db.exec("PRAGMA synchronous = NORMAL");
+      db.exec("PRAGMA busy_timeout = 10000");
+    } catch (err) {
+      log.warn(`database pragmas failed: ${String(err)}`);
+    }
+    return db;
   }
 
   private seedEmbeddingCache(sourceDb: DatabaseSync): void {
