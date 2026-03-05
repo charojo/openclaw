@@ -47,4 +47,3 @@ def test_write_gallery_normal_output():
         assert "a lobster astronaut, golden hour" in html
         assert 'src="001-lobster.png"' in html
         assert "002-nook.png" in html
-

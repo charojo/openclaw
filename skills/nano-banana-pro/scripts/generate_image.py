@@ -33,33 +33,26 @@ def main():
     parser = argparse.ArgumentParser(
         description="Generate images using Nano Banana Pro (Gemini 3 Pro Image)"
     )
+    parser.add_argument("--prompt", "-p", required=True, help="Image description/prompt")
     parser.add_argument(
-        "--prompt", "-p",
-        required=True,
-        help="Image description/prompt"
+        "--filename", "-f", required=True, help="Output filename (e.g., sunset-mountains.png)"
     )
     parser.add_argument(
-        "--filename", "-f",
-        required=True,
-        help="Output filename (e.g., sunset-mountains.png)"
-    )
-    parser.add_argument(
-        "--input-image", "-i",
+        "--input-image",
+        "-i",
         action="append",
         dest="input_images",
         metavar="IMAGE",
-        help="Input image path(s) for editing/composition. Can be specified multiple times (up to 14 images)."
+        help="Input image path(s) for editing/composition. Can be specified multiple times (up to 14 images).",
     )
     parser.add_argument(
-        "--resolution", "-r",
+        "--resolution",
+        "-r",
         choices=["1K", "2K", "4K"],
         default="1K",
-        help="Output resolution: 1K (default), 2K, or 4K"
+        help="Output resolution: 1K (default), 2K, or 4K",
     )
-    parser.add_argument(
-        "--api-key", "-k",
-        help="Gemini API key (overrides GEMINI_API_KEY env var)"
-    )
+    parser.add_argument("--api-key", "-k", help="Gemini API key (overrides GEMINI_API_KEY env var)")
 
     args = parser.parse_args()
 
@@ -89,7 +82,10 @@ def main():
     output_resolution = args.resolution
     if args.input_images:
         if len(args.input_images) > 14:
-            print(f"Error: Too many input images ({len(args.input_images)}). Maximum is 14.", file=sys.stderr)
+            print(
+                f"Error: Too many input images ({len(args.input_images)}). Maximum is 14.",
+                file=sys.stderr,
+            )
             sys.exit(1)
 
         max_input_dim = 0
@@ -115,13 +111,17 @@ def main():
                 output_resolution = "2K"
             else:
                 output_resolution = "1K"
-            print(f"Auto-detected resolution: {output_resolution} (from max input dimension {max_input_dim})")
+            print(
+                f"Auto-detected resolution: {output_resolution} (from max input dimension {max_input_dim})"
+            )
 
     # Build contents (images first if editing, prompt only if generating)
     if input_images:
         contents = [*input_images, args.prompt]
         img_count = len(input_images)
-        print(f"Processing {img_count} image{'s' if img_count > 1 else ''} with resolution {output_resolution}...")
+        print(
+            f"Processing {img_count} image{'s' if img_count > 1 else ''} with resolution {output_resolution}..."
+        )
     else:
         contents = args.prompt
         print(f"Generating image with resolution {output_resolution}...")
@@ -132,10 +132,8 @@ def main():
             contents=contents,
             config=types.GenerateContentConfig(
                 response_modalities=["TEXT", "IMAGE"],
-                image_config=types.ImageConfig(
-                    image_size=output_resolution
-                )
-            )
+                image_config=types.ImageConfig(image_size=output_resolution),
+            ),
         )
 
         # Process response and convert to PNG
@@ -152,19 +150,20 @@ def main():
                 if isinstance(image_data, str):
                     # If it's a string, it might be base64
                     import base64
+
                     image_data = base64.b64decode(image_data)
 
                 image = PILImage.open(BytesIO(image_data))
 
                 # Ensure RGB mode for PNG (convert RGBA to RGB with white background if needed)
-                if image.mode == 'RGBA':
-                    rgb_image = PILImage.new('RGB', image.size, (255, 255, 255))
+                if image.mode == "RGBA":
+                    rgb_image = PILImage.new("RGB", image.size, (255, 255, 255))
                     rgb_image.paste(image, mask=image.split()[3])
-                    rgb_image.save(str(output_path), 'PNG')
-                elif image.mode == 'RGB':
-                    image.save(str(output_path), 'PNG')
+                    rgb_image.save(str(output_path), "PNG")
+                elif image.mode == "RGB":
+                    image.save(str(output_path), "PNG")
                 else:
-                    image.convert('RGB').save(str(output_path), 'PNG')
+                    image.convert("RGB").save(str(output_path), "PNG")
                 image_saved = True
 
         if image_saved:
