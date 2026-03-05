@@ -33,16 +33,16 @@
     "skills/"
   ],
   "type": "module",
-  "main": "dist/index.js",
+  "main": "dist/index.mjs",
   "exports": {
-    ".": "./dist/index.js",
+    ".": "./dist/index.mjs",
     "./plugin-sdk": {
       "types": "./dist/plugin-sdk/index.d.ts",
-      "default": "./dist/plugin-sdk/index.js"
+      "default": "./dist/plugin-sdk/index.mjs"
     },
     "./plugin-sdk/account-id": {
       "types": "./dist/plugin-sdk/account-id.d.ts",
-      "default": "./dist/plugin-sdk/account-id.js"
+      "default": "./dist/plugin-sdk/account-id.mjs"
     },
     "./cli-entry": "./openclaw.mjs"
   },

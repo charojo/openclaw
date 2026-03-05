@@ -36,14 +36,14 @@ type HookPackageManifest = {
 
 export type InstallHooksResult =
   | {
-      ok: true;
-      hookPackId: string;
-      hooks: string[];
-      targetDir: string;
-      version?: string;
-      npmResolution?: NpmSpecResolution;
-      integrityDrift?: NpmIntegrityDrift;
-    }
+    ok: true;
+    hookPackId: string;
+    hooks: string[];
+    targetDir: string;
+    version?: string;
+    npmResolution?: NpmSpecResolution;
+    integrityDrift?: NpmIntegrityDrift;
+  }
   | { ok: false; error: string };
 
 export type HookNpmIntegrityDriftParams = {
@@ -131,7 +131,7 @@ async function validateHookDir(hookDir: string): Promise<void> {
     throw new Error(`HOOK.md missing in ${hookDir}`);
   }
 
-  const handlerCandidates = ["handler.ts", "handler.js", "index.ts", "index.js"];
+  const handlerCandidates = ["handler.ts", "handler.js", "handler.mjs", "index.ts", "index.js", "index.mjs"];
   const hasHandler = await Promise.all(
     handlerCandidates.map(async (candidate) => fileExists(path.join(hookDir, candidate))),
   ).then((results) => results.some(Boolean));

@@ -153,10 +153,10 @@ function text(res: Duplex, status: number, bodyText: string) {
   const body = Buffer.from(bodyText);
   res.write(
     `HTTP/1.1 ${status} ${status === 200 ? "OK" : "ERR"}\r\n` +
-      "Content-Type: text/plain; charset=utf-8\r\n" +
-      `Content-Length: ${body.length}\r\n` +
-      "Connection: close\r\n" +
-      "\r\n",
+    "Content-Type: text/plain; charset=utf-8\r\n" +
+    `Content-Length: ${body.length}\r\n` +
+    "Connection: close\r\n" +
+    "\r\n",
   );
   res.write(body);
   res.end();
@@ -210,9 +210,6 @@ export async function ensureChromeExtensionRelayServer(opts: {
   cdpUrl: string;
 }): Promise<ChromeExtensionRelayServer> {
   const info = parseBaseUrl(opts.cdpUrl);
-  if (!isLoopbackHost(info.host)) {
-    throw new Error(`extension relay requires loopback cdpUrl host (got ${info.host})`);
-  }
 
   const existing = relayRuntimeByPort.get(info.port);
   if (existing) {
@@ -747,7 +744,7 @@ export async function ensureChromeExtensionRelayServer(opts: {
 
   try {
     await new Promise<void>((resolve, reject) => {
-      server.listen(info.port, info.host, () => resolve());
+      server.listen(info.port, "0.0.0.0", () => resolve());
       server.once("error", reject);
     });
   } catch (err) {

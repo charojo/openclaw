@@ -86,7 +86,7 @@ function loadHookFromDir(params: {
     const name = frontmatter.name || params.nameHint || path.basename(params.hookDir);
     const description = frontmatter.description || "";
 
-    const handlerCandidates = ["handler.ts", "handler.js", "index.ts", "index.js"];
+    const handlerCandidates = ["handler.ts", "handler.js", "handler.mjs", "index.ts", "index.js", "index.mjs"];
     let handlerPath: string | undefined;
     for (const candidate of handlerCandidates) {
       const candidatePath = path.join(params.hookDir, candidate);
@@ -230,9 +230,9 @@ function loadHookEntries(
 
   const bundledHooks = bundledHooksDir
     ? loadHooksFromDir({
-        dir: bundledHooksDir,
-        source: "openclaw-bundled",
-      })
+      dir: bundledHooksDir,
+      source: "openclaw-bundled",
+    })
     : [];
   const extraHooks = extraDirs.flatMap((dir) => {
     const resolved = resolveUserPath(dir);

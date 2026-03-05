@@ -135,7 +135,7 @@ const shouldBuild = (deps) => {
   if (stamp.mtime == null) {
     return true;
   }
-  if (statMtime(deps.distEntry, deps.fs) == null) {
+  if (statMtime(deps.distEntry, deps.fs) == null && statMtime(path.join(deps.distRoot, "entry.mjs"), deps.fs) == null) {
     return true;
   }
 
@@ -177,7 +177,7 @@ const logRunner = (message, deps) => {
 };
 
 const runOpenClaw = async (deps) => {
-  const nodeProcess = deps.spawn(deps.execPath, ["openclaw.mjs", ...deps.args], {
+  const nodeProcess = deps.spawn(deps.execPath, [path.join(deps.projectRoot, "openclaw.mjs"), ...deps.args], {
     cwd: deps.cwd,
     env: deps.env,
     stdio: "inherit",
@@ -220,22 +220,28 @@ export async function runNodeMain(params = {}) {
     platform: params.platform ?? process.platform,
   };
 
-  deps.distRoot = path.join(deps.cwd, "dist");
-  deps.distEntry = path.join(deps.distRoot, "/entry.js");
+  deps.projectRoot = path.resolve(import.meta.dirname, "..");
+  deps.distRoot = path.join(deps.projectRoot, "dist");
+  deps.distEntry = path.join(deps.distRoot, "entry.js");
   deps.buildStampPath = path.join(deps.distRoot, ".buildstamp");
-  deps.srcRoot = path.join(deps.cwd, "src");
-  deps.configFiles = [path.join(deps.cwd, "tsconfig.json"), path.join(deps.cwd, "package.json")];
+  deps.srcRoot = path.join(deps.projectRoot, "src");
+  deps.configFiles = [
+    path.join(deps.projectRoot, "tsconfig.json"),
+    path.join(deps.projectRoot, "package.json"),
+    path.join(deps.projectRoot, "tsdown.config.ts"),
+  ];
 
   if (!shouldBuild(deps)) {
     return await runOpenClaw(deps);
   }
 
+  process.chdir(deps.projectRoot);
   logRunner("Building TypeScript (dist is stale).", deps);
   const buildCmd = deps.platform === "win32" ? "cmd.exe" : "pnpm";
   const buildArgs =
     deps.platform === "win32" ? ["/d", "/s", "/c", "pnpm", ...compilerArgs] : compilerArgs;
   const build = deps.spawn(buildCmd, buildArgs, {
-    cwd: deps.cwd,
+    cwd: deps.projectRoot,
     env: deps.env,
     stdio: "inherit",
   });
