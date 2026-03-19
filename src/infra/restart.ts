@@ -3,6 +3,7 @@ import {
   resolveGatewayLaunchAgentLabel,
   resolveGatewaySystemdServiceName,
 } from "../daemon/constants.js";
+import { isInsideContainer } from "../daemon/container.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
 
 export type RestartAttempt = {
@@ -316,6 +317,19 @@ export function triggerOpenClawRestart(): RestartAttempt {
         `user: ${formatSpawnDetail(userRestart)}`,
         `system: ${formatSpawnDetail(systemRestart)}`,
       ].join("; ");
+
+      if (isInsideContainer()) {
+        // Use -o (oldest) and -f (full command name) to target the daemon's title precisely.
+        const res = spawnSync("pkill", ["-USR1", "-o", "-f", "^openclaw-gateway$"], { timeout: SPAWN_TIMEOUT_MS });
+        if (res.status === 0) {
+          return { ok: true, method: "supervisor", detail: "container pkill signaled SIGUSR1", tried };
+        }
+        const emitted = emitGatewayRestart();
+        if (emitted) {
+          return { ok: true, method: "supervisor", detail: "container signaled SIGUSR1", tried };
+        }
+      }
+
       return { ok: false, method: "systemd", detail, tried };
     }
     return {

@@ -286,6 +286,14 @@ export async function runServiceRestart(params: {
         env: process.env,
         modeOverride: "local",
       }).token;
+
+      if (process.env.OPENCLAW_DEBUG_TOKEN_DRIFT) {
+        defaultRuntime.log(`[drift-check] serviceToken: ${serviceToken ? "set" : "unset"}, configToken: ${configToken ? "set" : "unset"}`);
+        if (serviceToken !== configToken) {
+          defaultRuntime.log(`[drift-check] VALUE MISMATCH detected`);
+        }
+      }
+
       const driftIssue = checkTokenDrift({ serviceToken, configToken });
       if (driftIssue) {
         const warning = driftIssue.detail

@@ -1,3 +1,4 @@
+import { isInsideContainer } from "./container.js";
 import {
   installLaunchAgent,
   isLaunchAgentLoaded,
@@ -34,6 +35,8 @@ import {
   stopSystemdService,
   uninstallSystemdService,
 } from "./systemd.js";
+import { emitGatewayRestart } from "../infra/restart.js";
+
 export type {
   GatewayServiceCommandConfig,
   GatewayServiceControlArgs,
@@ -64,6 +67,43 @@ export type GatewayService = {
   readRuntime: (env: GatewayServiceEnv) => Promise<GatewayServiceRuntime>;
 };
 
+const DockerGatewayService: GatewayService = {
+  label: "Docker",
+  loadedText: "running",
+  notLoadedText: "not running",
+  install: async () => {
+    throw new Error("Install not supported inside container: use docker-compose instead.");
+  },
+  uninstall: async () => {
+    throw new Error("Uninstall not supported inside container.");
+  },
+  stop: async (args) => {
+    args.stdout.write("Stop not supported inside container: use 'docker stop' from host.\n");
+  },
+  restart: async (args) => {
+    try {
+      const { execSync } = await import("node:child_process");
+      // Use -o (oldest) and -f (full command name) to target the daemon's title precisely.
+      execSync("pkill -USR1 -o -f '^openclaw-gateway$'", { stdio: "ignore" });
+      args.stdout.write("Sent SIGUSR1 to 'openclaw-gateway' for restart.\n");
+    } catch (err) {
+      // pkill returns non-zero if no process matches, which is fine if we're also the daemon.
+      const emitted = emitGatewayRestart();
+      if (emitted) {
+        args.stdout.write("Signaled local process for restart.\n");
+      } else {
+        args.stdout.write("Gateway restart already in progress (or pkill failed).\n");
+      }
+    }
+  },
+  isLoaded: async () => true,
+  readCommand: async () => ({
+    programArguments: [process.execPath, ...process.execArgv, ...process.argv.slice(1)],
+    environment: process.env as Record<string, string>,
+  }),
+  readRuntime: async () => ({ status: "running" }),
+};
+
 export function resolveGatewayService(): GatewayService {
   if (process.platform === "darwin") {
     return {
@@ -81,6 +121,9 @@ export function resolveGatewayService(): GatewayService {
   }
 
   if (process.platform === "linux") {
+    if (isInsideContainer()) {
+      return DockerGatewayService;
+    }
     return {
       label: "systemd",
       loadedText: "enabled",

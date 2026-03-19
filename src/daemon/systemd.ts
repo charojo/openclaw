@@ -28,6 +28,7 @@ import {
   parseSystemdEnvAssignment,
   parseSystemdExecStart,
 } from "./systemd-unit.js";
+import { isInsideContainer } from "./container.js";
 
 function resolveSystemdUnitPathForName(env: GatewayServiceEnv, name: string): string {
   const home = toPosixPath(resolveHomeDir(env));
@@ -170,6 +171,9 @@ export async function isSystemdUserServiceAvailable(): Promise<boolean> {
 }
 
 async function assertSystemdAvailable() {
+  if (isInsideContainer()) {
+    return;
+  }
   const res = await execSystemctl(["--user", "status"]);
   if (res.code === 0) {
     return;
@@ -369,6 +373,9 @@ export type LegacySystemdUnit = {
 };
 
 async function isSystemctlAvailable(): Promise<boolean> {
+  if (isInsideContainer()) {
+    return false;
+  }
   const res = await execSystemctl(["--user", "status"]);
   if (res.code === 0) {
     return true;
