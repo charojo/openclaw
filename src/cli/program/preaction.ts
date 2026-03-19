@@ -15,16 +15,17 @@ import {
 import { isCommandJsonOutputMode } from "./json-mode.js";
 
 function setProcessTitleForCommand(actionCommand: Command) {
-  let current: Command = actionCommand;
-  while (current.parent && current.parent.parent) {
-    current = current.parent;
-  }
-  const name = current.name();
+  const leafName = actionCommand.name();
   const cliName = resolveCliName();
-  if (!name || name === cliName) {
+  if (!leafName || leafName === cliName) {
     return;
   }
-  process.title = `${cliName}-${name}`;
+  // Daemons use the base name, CLI subcommands get a prefix.
+  if (leafName === "gateway" || leafName === "node") {
+    process.title = `${cliName}-${leafName}`;
+  } else {
+    process.title = `${cliName}-cli-${leafName}`;
+  }
 }
 
 // Commands that need channel plugins loaded
