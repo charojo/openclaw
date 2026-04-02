@@ -244,7 +244,7 @@ const DockerGatewayService: GatewayService = {
       } else {
         args.stdout.write("Gateway restart already in progress (or pkill failed).\n");
       }
-      return { outcome: emitted ? "scheduled" : "failed" };
+      return { outcome: "scheduled" };
     }
   },
   isLoaded: async () => true,
